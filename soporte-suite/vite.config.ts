@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 const suiteRoot = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
+  base: "./",
   plugins: [react(), tailwindcss()],
   server: { port: 5174 },
   build: {

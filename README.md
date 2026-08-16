@@ -2,6 +2,8 @@
 
 Aplicación web para coordinar un laboratorio de computación escolar. Reúne una agenda de reservas, solicitudes de uso, tareas de soporte, estado de servicios e inventario de activos en una sola experiencia.
 
+**Demo:** https://pietroalvarez.github.io/ReservaLab/
+
 ## Funciones principales
 
 - Agenda semanal con bloques disponibles y ocupados.

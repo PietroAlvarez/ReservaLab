@@ -306,7 +306,7 @@ function Dashboard({ tasks, services, assets, incidents, maintenance, reservatio
 }) {
   const today = localDate();
   const dueToday = tasks.filter((task) => task.dueDate <= today).length;
-  const reservationUrl = import.meta.env.VITE_RESERVAS_URL || "/reservas/index.html";
+  const reservationUrl = import.meta.env.VITE_RESERVAS_URL || "./reservas/index.html";
 
   return <>
     <section className="hero">
@@ -428,7 +428,7 @@ function ReservationQueue({ items, onReview, onApproveBatch }: {
   return <section className="reservation-queue">
     <div className="reservation-queue__heading">
       <div><span className="reservation-count">{items.length}</span><div><h3>Reservas pendientes</h3><p>Selecciona varias para aprobarlas con una sola notificación.</p></div></div>
-      <a href={import.meta.env.VITE_RESERVAS_URL || "/reservas/index.html"}>Ver agenda <ExternalLink size={14} /></a>
+      <a href={import.meta.env.VITE_RESERVAS_URL || "./reservas/index.html"}>Ver agenda <ExternalLink size={14} /></a>
     </div>
     <div className="reservation-bulk">
       <button type="button" onClick={toggleAll}>{allSelected ? "Quitar selección" : "Seleccionar todas"}</button>
