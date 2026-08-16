@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+.vercel/
+.DS_Store
+Thumbs.db
+datos DB.txt
