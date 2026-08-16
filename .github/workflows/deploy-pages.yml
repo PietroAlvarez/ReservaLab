@@ -33,7 +33,7 @@ jobs:
 
       - name: Instalar dependencias
         working-directory: soporte-suite
-        run: npm ci
+        run: npm install
 
       - name: Compilar aplicación
         working-directory: soporte-suite
