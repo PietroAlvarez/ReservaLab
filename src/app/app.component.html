@@ -142,28 +142,69 @@
             </p-table>
           </p-card>
 
-          <p-card styleClass="panel-card availability-panel">
+          <p-card styleClass="panel-card unifi-alert-panel">
             <ng-template pTemplate="header">
-              <div class="panel-header"><div><span class="eyebrow">Capacidad</span><h3>Uso de laboratorios</h3></div></div>
+              <div class="panel-header">
+                <div><span class="eyebrow">Monitoreo de red</span><h3>Antenas UniFi con alertas</h3></div>
+                <button pButton type="button" icon="pi pi-refresh" class="p-button-rounded p-button-text" aria-label="Actualizar antenas" pTooltip="Actualizar estado" (click)="loadNetworkOverview()" [loading]="networkLoading"></button>
+              </div>
             </ng-template>
-            <div class="availability-list">
-              <div class="availability-item">
-                <div><span>Laboratorio Central</span><strong>78%</strong></div>
-                <p-progressBar [value]="78" [showValue]="false"></p-progressBar>
-                <small>7 de 9 bloques ocupados</small>
-              </div>
-              <div class="availability-item">
-                <div><span>Laboratorio Norte</span><strong>56%</strong></div>
-                <p-progressBar [value]="56" [showValue]="false"></p-progressBar>
-                <small>5 de 9 bloques ocupados</small>
-              </div>
-              <div class="availability-item">
-                <div><span>Aula móvil</span><strong>33%</strong></div>
-                <p-progressBar [value]="33" [showValue]="false"></p-progressBar>
-                <small>3 de 9 bloques ocupados</small>
-              </div>
+
+            <div *ngIf="networkLoading" class="unifi-panel-state">
+              <i class="pi pi-spin pi-spinner"></i>
+              <div><strong>Consultando UniFi</strong><span>Obteniendo el estado más reciente de las antenas.</span></div>
             </div>
-            <div class="service-banner"><i class="pi pi-wifi"></i><div><strong>Servicios estables</strong><span>Red, cuentas y dispositivos sin alertas críticas.</span></div></div>
+
+            <div *ngIf="networkError && !networkLoading" class="unifi-panel-state warning">
+              <i class="pi pi-server"></i>
+              <div><strong>Backend sin conexión</strong><span>{{ networkError }}</span></div>
+            </div>
+
+            <ng-container *ngIf="networkOverview && !networkLoading">
+              <div *ngIf="!networkOverview.configured" class="unifi-panel-state neutral">
+                <i class="pi pi-key"></i>
+                <div><strong>Conector pendiente</strong><span>Configura la clave de sólo lectura para mostrar las antenas.</span></div>
+              </div>
+
+              <div *ngIf="networkOverview.configured && !networkOverview.connected" class="unifi-panel-state warning">
+                <i class="pi pi-times-circle"></i>
+                <div><strong>UniFi no respondió</strong><span>{{ networkOverview.message }}</span></div>
+              </div>
+
+              <ng-container *ngIf="networkOverview.connected">
+                <div class="unifi-alert-count" [class.has-alerts]="networkOverview.offlineAccessPoints > 0">
+                  <div><i class="pi" [class.pi-check-circle]="networkOverview.offlineAccessPoints === 0" [class.pi-exclamation-triangle]="networkOverview.offlineAccessPoints > 0"></i></div>
+                  <div><strong>{{ networkOverview.offlineAccessPoints }}</strong><span>{{ networkOverview.offlineAccessPoints === 1 ? 'antena requiere atención' : 'antenas requieren atención' }}</span></div>
+                </div>
+
+                <div *ngIf="networkOverview.accessPointAlerts?.length" class="access-point-list">
+                  <article *ngFor="let antenna of networkOverview.accessPointAlerts">
+                    <div class="access-point-icon"><i class="pi pi-wifi"></i></div>
+                    <div class="access-point-copy">
+                      <strong>{{ antenna.name }}</strong>
+                      <span>{{ antenna.siteName }} · {{ antenna.model }}</span>
+                      <small>{{ antenna.ipAddress || antenna.macAddress || 'Dirección no informada' }}</small>
+                    </div>
+                    <p-tag [value]="antenna.alert" [severity]="accessPointSeverity(antenna.state)"></p-tag>
+                  </article>
+                </div>
+
+                <div *ngIf="networkOverview.offlineAccessPoints === 0" class="unifi-panel-state success">
+                  <i class="pi pi-check-circle"></i>
+                  <div><strong>Todas las antenas están operativas</strong><span>Última consulta: {{ formatSyncTime(networkOverview.lastSync) }}</span></div>
+                </div>
+
+                <div *ngIf="networkOverview.offlineAccessPoints > 0 && !networkOverview.accessPointAlerts?.length" class="unifi-panel-state warning">
+                  <i class="pi pi-eye-slash"></i>
+                  <div><strong>Hay antenas fuera de línea</strong><span>{{ networkOverview.deviceDetailsMessage }}</span></div>
+                </div>
+              </ng-container>
+            </ng-container>
+
+            <div class="unifi-panel-footer">
+              <span><i class="pi pi-eye"></i> Integración de sólo lectura</span>
+              <button type="button" (click)="selectView('network')">Ver red completa <i class="pi pi-arrow-right"></i></button>
+            </div>
           </p-card>
         </section>
 

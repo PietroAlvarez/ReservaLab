@@ -77,6 +77,17 @@ interface TabletLoan {
   status: "Activo" | "Devuelto";
 }
 
+interface AccessPointAlert {
+  id: string;
+  name: string;
+  model: string;
+  macAddress: string;
+  ipAddress: string;
+  state: string;
+  siteName: string;
+  alert: string;
+}
+
 interface NetworkOverview {
   configured: boolean;
   connected: boolean;
@@ -86,12 +97,16 @@ interface NetworkOverview {
   sites: number;
   totalDevices: number;
   offlineDevices: number;
+  offlineAccessPoints: number;
   pendingUpdates: number;
   wifiClients: number;
   wiredClients: number;
   wanUptime: number;
   siteNames: string[];
   permissions: string[];
+  deviceDetailsAvailable: boolean;
+  accessPointAlerts: AccessPointAlert[];
+  deviceDetailsMessage: string;
   lastSync: string | null;
   message: string;
 }
@@ -186,17 +201,17 @@ export class AppComponent {
   readonly assetCategories = ["Computador", "Notebook", "Proyector", "Red", "Audio y video", "Otro"];
   readonly blocks = ["08:00–09:30", "09:45–11:15", "11:30–13:00", "14:00–15:30"];
   readonly courses = ["5° Básico A", "6° Básico B", "7° Básico A", "8° Básico B", "1° Medio A", "2° Medio B"];
-  readonly labs = ["Laboratorio Norte", "Laboratorio Central", "Aula móvil"];
+  readonly labs = ["Laboratorio de computación"];
   readonly taskAreas = ["Redes", "Equipamiento", "Cuentas", "Audio y video", "Software"];
   readonly priorities = ["Alta", "Media", "Baja"];
   readonly tabletStatusOptions = ["Todas", "Disponible", "Prestada", "En revisión"];
 
   reservations: Reservation[] = [
-    { id: 1041, date: "2026-08-17", block: "08:00–09:30", course: "7° Básico A", teacher: "Camila Rojas", lab: "Laboratorio Central", status: "Confirmada" },
-    { id: 1042, date: "2026-08-17", block: "09:45–11:15", course: "1° Medio A", teacher: "Tomás Silva", lab: "Laboratorio Norte", status: "Confirmada" },
-    { id: 1043, date: "2026-08-18", block: "11:30–13:00", course: "6° Básico B", teacher: "Fernanda Soto", lab: "Laboratorio Central", status: "Pendiente" },
-    { id: 1044, date: "2026-08-19", block: "14:00–15:30", course: "2° Medio B", teacher: "Martín Pérez", lab: "Aula móvil", status: "Confirmada" },
-    { id: 1045, date: "2026-08-20", block: "09:45–11:15", course: "8° Básico B", teacher: "Daniela Muñoz", lab: "Laboratorio Norte", status: "Pendiente" },
+    { id: 1041, date: "2026-08-17", block: "08:00–09:30", course: "7° Básico A", teacher: "Camila Rojas", lab: "Laboratorio de computación", status: "Confirmada" },
+    { id: 1042, date: "2026-08-17", block: "09:45–11:15", course: "1° Medio A", teacher: "Tomás Silva", lab: "Laboratorio de computación", status: "Confirmada" },
+    { id: 1043, date: "2026-08-18", block: "11:30–13:00", course: "6° Básico B", teacher: "Fernanda Soto", lab: "Laboratorio de computación", status: "Pendiente" },
+    { id: 1044, date: "2026-08-19", block: "14:00–15:30", course: "2° Medio B", teacher: "Martín Pérez", lab: "Laboratorio de computación", status: "Confirmada" },
+    { id: 1045, date: "2026-08-20", block: "09:45–11:15", course: "8° Básico B", teacher: "Daniela Muñoz", lab: "Laboratorio de computación", status: "Pendiente" },
   ];
 
   tasks: SupportTask[] = [
@@ -241,6 +256,7 @@ export class AppComponent {
     this.restoreDemoData();
     this.loadWorkspaceData();
     this.loadTabletFleetSummary();
+    this.loadNetworkOverview();
   }
 
   get todayLabel(): string {
@@ -328,10 +344,6 @@ export class AppComponent {
     return this.assets.filter((item) => item.status === "Fuera de servicio").length;
   }
 
-  get labAvailability(): number {
-    return 82;
-  }
-
   get availableTablets(): number {
     return this.tablets.filter((item) => item.status === "Disponible").length;
   }
@@ -401,6 +413,10 @@ export class AppComponent {
     if (!this.networkOverview?.configured) return "info";
     if (!this.networkOverview.connected) return "danger";
     return this.networkOverview.offlineDevices > 0 ? "warn" : "success";
+  }
+
+  accessPointSeverity(state: string): "warn" | "danger" {
+    return ["OFFLINE", "CONNECTION_INTERRUPTED", "ISOLATED"].includes(state) ? "danger" : "warn";
   }
 
   formatSyncTime(value: string | null): string {
@@ -699,7 +715,7 @@ export class AppComponent {
   }
 
   private emptyReservation(): { date: Date | null; block: string; course: string; teacher: string; lab: string; notes: string } {
-    return { date: null, block: "", course: "", teacher: "", lab: "", notes: "" };
+    return { date: null, block: "", course: "", teacher: "", lab: this.labs[0], notes: "" };
   }
 
   private emptyTask(): { title: string; area: string; priority: string; notes: string } {
@@ -744,7 +760,7 @@ export class AppComponent {
     if (!stored) return;
     try {
       const parsed = JSON.parse(stored) as Partial<WorkspaceData>;
-      if (parsed.reservations) this.reservations = parsed.reservations;
+      if (parsed.reservations) this.reservations = this.normalizeReservations(parsed.reservations);
       if (parsed.tasks) this.tasks = parsed.tasks;
       if (parsed.assets) this.assets = parsed.assets;
       if (parsed.tablets) {
@@ -772,7 +788,7 @@ export class AppComponent {
   }
 
   private applyWorkspaceData(data: WorkspaceData): void {
-    this.reservations = Array.isArray(data.reservations) ? data.reservations : this.reservations;
+    this.reservations = Array.isArray(data.reservations) ? this.normalizeReservations(data.reservations) : this.reservations;
     this.tasks = Array.isArray(data.tasks) ? data.tasks : this.tasks;
     this.assets = Array.isArray(data.assets) ? data.assets : this.assets;
     this.tablets = Array.isArray(data.tablets)
@@ -788,5 +804,9 @@ export class AppComponent {
 
   private persistLocalCopy(data: WorkspaceData = this.workspaceData()): void {
     localStorage.setItem("reservalab-primeng-demo", JSON.stringify(data));
+  }
+
+  private normalizeReservations(reservations: Reservation[]): Reservation[] {
+    return reservations.map((reservation) => ({ ...reservation, lab: this.labs[0] }));
   }
 }

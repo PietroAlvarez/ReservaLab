@@ -25,7 +25,9 @@ Rutas disponibles:
 
 ## UniFi en modo de sólo lectura
 
-El conector utiliza únicamente `GET /v1/sites` de la API oficial de Site Manager. No existen métodos de escritura en `UniFiService`.
+El conector utiliza `GET /v1/sites` para el resumen y el conector oficial de Network `GET /v1/sites/{siteId}/devices` para identificar antenas fuera de línea. No existen métodos de escritura en `UniFiService`.
+
+Cuando el permiso de la cuenta no permite consultar el detalle individual, la API conserva el contador oficial `offlineWifiDevice` y devuelve un mensaje de alcance limitado en vez de inventar nombres o estados.
 
 Define `UNIFI_API_KEY` como variable del servicio Linux. Nunca la guardes en Angular, GitHub ni `localStorage`.
 

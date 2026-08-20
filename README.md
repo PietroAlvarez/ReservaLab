@@ -5,12 +5,12 @@ Aplicación unificada para centralizar el trabajo diario de Soporte TI de un est
 ## Funciones
 
 - Dashboard operativo con indicadores de reservas, tareas, activos y tablets.
-- Gestión de reservas de laboratorio: creación, aprobación y cancelación.
+- Gestión de reservas del laboratorio de computación: creación, aprobación y cancelación.
 - Gestión de tareas TI por área, prioridad, estado y avance.
 - Inventario tecnológico con filtros y estados operativos.
 - Registro, préstamo, devolución y mantenimiento de tablets.
 - Evaluación de aplicaciones instaladas, versiones aprobadas y cumplimiento Android.
-- Integración UniFi Site Manager exclusivamente de lectura.
+- Integración UniFi exclusivamente de lectura, con alertas de antenas apagadas o en estado anómalo en el resumen.
 - Persistencia central mediante Spring Boot y PostgreSQL, con una base H2 durable para la prueba local.
 - Copia local automática para seguir trabajando si el backend está temporalmente desconectado.
 - Interfaz responsive con PrimeNG, barra lateral plegable y modos claro/oscuro persistentes.
