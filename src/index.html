@@ -6,15 +6,7 @@
     <base href="/">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Centro de mando para reservas, soporte, inventario, tablets y monitoreo de red.">
-    <script>
-      (() => {
-        const savedTheme = localStorage.getItem("centro-ti-theme") || localStorage.getItem("reservalab-theme");
-        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-        const theme = savedTheme === "dark" || savedTheme === "light" ? savedTheme : systemTheme;
-        document.documentElement.dataset.theme = theme;
-        document.documentElement.classList.toggle("app-dark", theme === "dark");
-      })();
-    </script>
+    <script src="assets/theme-init.js"></script>
   </head>
   <body>
     <app-root></app-root>

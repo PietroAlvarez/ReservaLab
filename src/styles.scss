@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap");
-
 :root {
   --ink-950: #102a33;
   --ink-800: #24434d;
@@ -24,8 +22,8 @@
   --brand-600: #0891b2;
   --brand-700: #0e7490;
   --sidebar: #0d2933;
-  --font-body: "DM Sans", sans-serif;
-  --font-display: "Manrope", sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Segoe UI", system-ui, sans-serif;
 }
 
 :root[data-theme="dark"] {

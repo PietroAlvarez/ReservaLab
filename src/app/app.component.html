@@ -162,8 +162,8 @@
 
             <ng-container *ngIf="networkOverview && !networkLoading">
               <div *ngIf="!networkOverview.configured" class="unifi-panel-state neutral">
-                <i class="pi pi-key"></i>
-                <div><strong>Conector pendiente</strong><span>Configura la clave de sólo lectura para mostrar las antenas.</span></div>
+                <i class="pi pi-pause-circle"></i>
+                <div><strong>Integración en pausa</strong><span>Podremos activarla más adelante sin afectar el resto del Centro TI.</span></div>
               </div>
 
               <div *ngIf="networkOverview.configured && !networkOverview.connected" class="unifi-panel-state warning">

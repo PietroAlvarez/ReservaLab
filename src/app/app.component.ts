@@ -185,7 +185,7 @@ export class AppComponent {
   workspaceBackendAvailable = false;
   workspaceUpdatedAt: string | null = null;
 
-  private readonly apiBaseUrl = window.location.port === "4300" ? "http://localhost:8084/api" : "/api";
+  private readonly apiBaseUrl: string | null = window.location.port === "4300" ? "http://localhost:8084/api" : null;
 
   readonly navigation = [
     { id: "overview" as const, label: "Resumen", icon: "pi pi-home" },
@@ -364,6 +364,12 @@ export class AppComponent {
   }
 
   loadNetworkOverview(): void {
+    if (!this.apiBaseUrl) {
+      this.networkOverview = this.networkStandbyOverview();
+      this.networkLoading = false;
+      this.networkError = "";
+      return;
+    }
     this.networkLoading = true;
     this.networkError = "";
     this.http.get<NetworkOverview>(`${this.apiBaseUrl}/network/overview`).subscribe({
@@ -380,6 +386,10 @@ export class AppComponent {
   }
 
   loadTabletFleetSummary(): void {
+    if (!this.apiBaseUrl) {
+      this.tabletBackendAvailable = false;
+      return;
+    }
     this.http.get<TabletFleetSummary>(`${this.apiBaseUrl}/tablets/summary`).subscribe({
       next: (summary) => {
         this.tabletFleetSummary = summary;
@@ -392,6 +402,10 @@ export class AppComponent {
   }
 
   loadWorkspaceData(): void {
+    if (!this.apiBaseUrl) {
+      this.workspaceBackendAvailable = false;
+      return;
+    }
     this.http.get<WorkspaceStateResponse | null>(`${this.apiBaseUrl}/workspace`).subscribe({
       next: (response) => {
         this.workspaceBackendAvailable = true;
@@ -674,6 +688,10 @@ export class AppComponent {
 
   resetDemo(): void {
     localStorage.removeItem("reservalab-primeng-demo");
+    if (!this.apiBaseUrl) {
+      window.location.reload();
+      return;
+    }
     this.http.delete(`${this.apiBaseUrl}/workspace`).subscribe({
       next: () => window.location.reload(),
       error: () => window.location.reload(),
@@ -744,6 +762,10 @@ export class AppComponent {
   private persistDemoData(): void {
     const data = this.workspaceData();
     this.persistLocalCopy(data);
+    if (!this.apiBaseUrl) {
+      this.workspaceBackendAvailable = false;
+      return;
+    }
     this.http.put<WorkspaceStateResponse>(`${this.apiBaseUrl}/workspace`, data).subscribe({
       next: (response) => {
         this.workspaceBackendAvailable = true;
@@ -808,5 +830,30 @@ export class AppComponent {
 
   private normalizeReservations(reservations: Reservation[]): Reservation[] {
     return reservations.map((reservation) => ({ ...reservation, lab: this.labs[0] }));
+  }
+
+  private networkStandbyOverview(): NetworkOverview {
+    return {
+      configured: false,
+      connected: false,
+      readOnly: true,
+      source: "UNIFI_STANDBY",
+      status: "EN_PAUSA",
+      sites: 0,
+      totalDevices: 0,
+      offlineDevices: 0,
+      offlineAccessPoints: 0,
+      pendingUpdates: 0,
+      wifiClients: 0,
+      wiredClients: 0,
+      wanUptime: 0,
+      siteNames: [],
+      permissions: [],
+      deviceDetailsAvailable: false,
+      accessPointAlerts: [],
+      deviceDetailsMessage: "Integración UniFi en pausa.",
+      lastSync: null,
+      message: "La integración UniFi está en pausa y no afecta las demás funciones del Centro TI.",
+    };
   }
 }
