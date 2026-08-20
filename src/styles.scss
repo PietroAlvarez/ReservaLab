@@ -1,0 +1,108 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap");
+
+:root {
+  --ink-950: #102a33;
+  --ink-800: #24434d;
+  --ink-600: #54717a;
+  --ink-400: #91a7ae;
+  --surface-page: #f4f8f9;
+  --surface-card: #ffffff;
+  --surface-topbar: rgba(255, 255, 255, 0.92);
+  --surface-muted: #f8fbfc;
+  --surface-hover: #f8fcfd;
+  --surface-soft: #f3f9fa;
+  --surface-accent: #effaff;
+  --line-soft: #e1eaed;
+  --progress-track: #edf4f6;
+  --welcome-start: #f0fdff;
+  --welcome-middle: #ffffff;
+  --welcome-end: #e7fafe;
+  --card-shadow: 0 7px 24px rgba(20, 62, 74, 0.04);
+  --brand-50: #ecfeff;
+  --brand-100: #cffafe;
+  --brand-500: #06b6d4;
+  --brand-600: #0891b2;
+  --brand-700: #0e7490;
+  --sidebar: #0d2933;
+  --font-body: "DM Sans", sans-serif;
+  --font-display: "Manrope", sans-serif;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ink-950: #edf8fa;
+  --ink-800: #d3e5e9;
+  --ink-600: #9bb5bc;
+  --ink-400: #708e96;
+  --surface-page: #071920;
+  --surface-card: #0d252e;
+  --surface-topbar: rgba(9, 29, 37, 0.92);
+  --surface-muted: #102b35;
+  --surface-hover: #12313b;
+  --surface-soft: #102d37;
+  --surface-accent: #0c303b;
+  --line-soft: #1d3b45;
+  --progress-track: #183741;
+  --welcome-start: #0d2d37;
+  --welcome-middle: #0c252e;
+  --welcome-end: #0b3440;
+  --card-shadow: 0 12px 34px rgba(0, 0, 0, 0.2);
+  --brand-50: #0b3440;
+  --brand-100: #104653;
+  --brand-500: #22d3ee;
+  --brand-600: #22b9d1;
+  --brand-700: #67e8f9;
+}
+
+* { box-sizing: border-box; }
+
+html, body { min-height: 100%; margin: 0; overflow-x: hidden; }
+
+body {
+  background: var(--surface-page);
+  color: var(--ink-950);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+button, input, textarea { font: inherit; }
+
+.p-component { font-family: var(--font-body); }
+
+.p-button {
+  border-radius: 0.75rem;
+  font-weight: 700;
+}
+
+.p-button:not(.p-button-text):not(.p-button-outlined) {
+  border-color: var(--brand-600);
+  background: var(--brand-600);
+}
+
+.p-button:not(.p-button-text):not(.p-button-outlined):hover {
+  border-color: var(--brand-700);
+  background: var(--brand-700);
+}
+
+.p-select, .p-datepicker, .p-datepicker .p-inputtext { width: 100%; }
+
+.p-inputtext, .p-select {
+  border-radius: 0.7rem;
+}
+
+.p-dialog {
+  border-radius: 1.15rem;
+  overflow: hidden;
+}
+
+.p-dialog .p-dialog-header {
+  padding: 1.4rem 1.5rem 1rem;
+}
+
+.p-dialog .p-dialog-content { padding: 0 1.5rem 1.5rem; }
+.p-dialog .p-dialog-footer { padding: 1rem 1.5rem 1.4rem; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #edf3f5; }
+::-webkit-scrollbar-thumb { background: #b2c7cd; border-radius: 20px; border: 2px solid #edf3f5; }

@@ -1,66 +1,67 @@
-# ReservaLab
+# Centro TI
 
-Aplicación web para coordinar un laboratorio de computación escolar. Reúne una agenda de reservas, solicitudes de uso, tareas de soporte, estado de servicios e inventario de activos en una sola experiencia.
+Aplicación unificada para centralizar el trabajo diario de Soporte TI de un establecimiento educacional. Nació como **ReservaLab** y evolucionó hacia un centro de mando que reúne reservas, tareas, inventario, tablets y monitoreo de red.
 
-**Demo:** https://pietroalvarez.github.io/ReservaLab/
+## Funciones
 
-## Funciones principales
-
-- Agenda semanal con bloques disponibles y ocupados.
-- Formulario de solicitudes con validación de datos.
-- Panel TI con indicadores, prioridades y acciones rápidas.
-- Gestión de tareas, servicios e inventario.
-- Modo demostración seguro con persistencia local.
-- Modo institucional con autenticación, PostgreSQL, RLS y auditoría mediante Supabase.
-- Diseño adaptable para escritorio y dispositivos móviles.
+- Dashboard operativo con indicadores de reservas, tareas, activos y tablets.
+- Gestión de reservas de laboratorio: creación, aprobación y cancelación.
+- Gestión de tareas TI por área, prioridad, estado y avance.
+- Inventario tecnológico con filtros y estados operativos.
+- Registro, préstamo, devolución y mantenimiento de tablets.
+- Evaluación de aplicaciones instaladas, versiones aprobadas y cumplimiento Android.
+- Integración UniFi Site Manager exclusivamente de lectura.
+- Persistencia central mediante Spring Boot y PostgreSQL, con una base H2 durable para la prueba local.
+- Copia local automática para seguir trabajando si el backend está temporalmente desconectado.
+- Interfaz responsive con PrimeNG, barra lateral plegable y modos claro/oscuro persistentes.
 
 ## Tecnologías
 
-- React 19 y TypeScript
-- Vite
-- HTML y CSS
-- Supabase / PostgreSQL
-- Row Level Security (RLS)
-- Vercel
+- Angular 17, TypeScript, PrimeNG y PrimeFlex.
+- Java 21, Spring Boot 3, Spring Data JPA y API REST.
+- PostgreSQL en servidor y H2 persistente en desarrollo.
+- Docker Compose para el despliegue privado en Linux.
 
-## Ejecutar la demo local
+## Ejecución local
 
-```bash
-cd soporte-suite
-npm install
-npm run dev
+Inicia primero el backend:
+
+```powershell
+cd backend
+mvn spring-boot:run
 ```
 
-Abre `http://localhost:5174`. La agenda se encuentra en `http://localhost:5174/reservas/index.html`.
+En otra terminal inicia la interfaz:
 
-El modo predeterminado es una demo segura: los cambios del panel y las solicitudes se guardan únicamente en el navegador y pueden restablecerse desde el menú lateral.
+```powershell
+npm install
+npm start
+```
 
-## Conectar Supabase
+Abre `http://127.0.0.1:4300/`. El backend escucha en `http://127.0.0.1:8084/`.
 
-1. Ejecuta `soporte-suite/supabase-suite.sql` y luego `supabase-setup.sql` en el SQL Editor de Supabase.
-2. Copia `soporte-suite/.env.example` como `soporte-suite/.env` y completa las variables públicas.
-3. Cambia `VITE_DATA_MODE=supabase` y `VITE_RESERVATION_DEMO=false` cuando quieras conectar ambos módulos.
-4. Configura y despliega la función `supabase/functions/send-reservation-notification` si necesitas notificaciones por correo.
-
-Las credenciales administrativas y las claves `service_role` nunca deben exponerse en el repositorio ni en el navegador. La clave publishable sólo es segura cuando las políticas RLS y los permisos de columnas están correctamente aplicados.
+La base local queda en `backend/data/` y no se versiona. Si el backend no está disponible, la interfaz cambia automáticamente a modo local y mantiene una copia en el navegador.
 
 ## Verificación
 
-```bash
-cd soporte-suite
-npm run typecheck
-npm run build
-npm audit
+```powershell
+npm run build:prod
+cd backend
+mvn test
 ```
 
-## Estructura
+## Despliegue
 
-- `soporte-suite/`: panel de administración construido con React y TypeScript.
-- `soporte-suite/reservas/` y `soporte-suite/src/reservation-main.jsx`: agenda pública de reservas.
-- `supabase-setup.sql`: reservas, solicitudes, políticas y funciones transaccionales.
-- `soporte-suite/supabase-suite.sql`: tareas, servicios, activos, roles y auditoría.
-- `supabase/functions/`: notificaciones de reservas mediante una Edge Function.
+- La interfaz está preparada para GitHub Pages o Vercel.
+- El backend y PostgreSQL se despliegan en el servidor Linux mediante `docker compose`.
+- La clave de UniFi permanece únicamente en las variables privadas del backend.
+
+Consulta [DEPLOY-LINUX.md](DEPLOY-LINUX.md) y [backend/README.md](backend/README.md) para la configuración.
+
+## Historia de la fusión
+
+La interfaz React/Supabase de ReservaLab fue retirada al consolidar el proyecto. Su historial completo y sus cambios previos permanecen recuperables en Git; la versión canónica es ahora Centro TI.
 
 ## Autor
 
-Desarrollado por [Pietro Alvarez](https://github.com/PietroAlvarez) como proyecto de portafolio.
+Desarrollado por [Pietro Alvarez](https://github.com/PietroAlvarez).

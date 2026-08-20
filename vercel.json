@@ -1,13 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm --prefix soporte-suite install",
-  "buildCommand": "npm --prefix soporte-suite run build",
-  "outputDirectory": "soporte-suite/dist",
-  "redirects": [
-    {
-      "source": "/reservas",
-      "destination": "/reservas/index.html",
-      "permanent": false
-    }
-  ]
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build:prod",
+  "outputDirectory": "dist/centro-ti",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

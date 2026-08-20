@@ -1,0 +1,495 @@
+<p-toast position="top-right"></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="app-shell">
+  <aside
+    class="sidebar"
+    [class.sidebar-open]="mobileMenuOpen"
+    [class.sidebar-collapsed]="sidebarCollapsed && !mobileMenuOpen"
+  >
+    <div class="brand">
+      <div class="brand-mark"><i class="pi pi-shield"></i></div>
+      <div class="brand-copy">
+        <strong>Centro TI</strong>
+        <span>Centro de mando de Soporte</span>
+      </div>
+    </div>
+
+    <div class="demo-pill">
+      <span class="pulse"></span>
+      <span class="demo-text">Centro TI unificado</span>
+    </div>
+
+    <nav aria-label="Navegación principal">
+      <span class="nav-label">Operación</span>
+      <button
+        *ngFor="let item of navigation"
+        type="button"
+        class="nav-item"
+        [class.active]="activeView === item.id"
+        [pTooltip]="sidebarCollapsed ? item.label : ''"
+        tooltipPosition="right"
+        (click)="selectView(item.id)"
+      >
+        <i [class]="item.icon"></i>
+        <span>{{ item.label }}</span>
+        <i *ngIf="activeView === item.id" class="pi pi-angle-right nav-arrow"></i>
+      </button>
+    </nav>
+
+    <div class="sidebar-status">
+      <div class="status-heading">
+        <span>Estado del sistema</span>
+        <p-tag [value]="workspaceBackendAvailable ? 'Sincronizado' : 'Modo local'" [severity]="workspaceBackendAvailable ? 'success' : 'info'"></p-tag>
+      </div>
+      <div class="status-line"><span>Persistencia</span><strong>{{ persistenceLabel }}</strong></div>
+      <div class="status-line"><span>Última sincronización</span><strong>{{ synchronizationLabel }}</strong></div>
+    </div>
+
+    <button pButton type="button" [label]="sidebarCollapsed ? '' : 'Reiniciar demo'" icon="pi pi-refresh" class="p-button-text reset-button" pTooltip="Reiniciar demo" tooltipPosition="right" (click)="resetDemo()"></button>
+  </aside>
+
+  <button *ngIf="mobileMenuOpen" class="sidebar-backdrop" type="button" aria-label="Cerrar menú" (click)="mobileMenuOpen = false"></button>
+
+  <main class="workspace" [class.sidebar-collapsed]="sidebarCollapsed">
+    <p-toolbar styleClass="topbar">
+      <ng-template pTemplate="start">
+        <button
+          pButton
+          type="button"
+          [icon]="sidebarToggleIcon"
+          class="p-button-text menu-button"
+          [attr.aria-label]="sidebarToggleLabel"
+          [pTooltip]="sidebarToggleLabel"
+          tooltipPosition="bottom"
+          (click)="toggleSidebar()"
+        ></button>
+        <div class="page-heading">
+          <span>Centro de mando</span>
+          <h1>{{ pageTitle }}</h1>
+        </div>
+      </ng-template>
+      <ng-template pTemplate="end">
+        <button
+          pButton
+          type="button"
+          [icon]="theme === 'light' ? 'pi pi-moon' : 'pi pi-sun'"
+          class="p-button-rounded p-button-text theme-button"
+          [pTooltip]="themeActionLabel"
+          tooltipPosition="bottom"
+          [attr.aria-label]="themeActionLabel"
+          (click)="toggleTheme()"
+        ></button>
+        <button pButton type="button" icon="pi pi-bell" class="p-button-rounded p-button-text notification-button" pBadge value="2" aria-label="Notificaciones"></button>
+        <div class="user-summary">
+          <p-avatar label="PA" shape="circle" size="large"></p-avatar>
+          <div><strong>Pietro Alvarez</strong><span>Soporte TI</span></div>
+          <i class="pi pi-angle-down"></i>
+        </div>
+      </ng-template>
+    </p-toolbar>
+
+    <div class="content-wrap">
+      <ng-container *ngIf="activeView === 'overview'">
+        <section class="welcome-panel">
+          <div>
+            <p-tag [value]="todayLabel" icon="pi pi-calendar"></p-tag>
+            <h2>Buenos días, Pietro</h2>
+            <p>Esta es la situación actual de los activos, tablets, reservas y tareas de soporte.</p>
+          </div>
+          <button pButton type="button" label="Nueva reserva" icon="pi pi-plus" (click)="showReservationDialog()"></button>
+        </section>
+
+        <section class="metrics-grid">
+          <article class="metric-card cyan">
+            <div class="metric-icon"><i class="pi pi-calendar"></i></div>
+            <div><span>Reservas confirmadas</span><strong>{{ confirmedReservations }}</strong><small><i class="pi pi-arrow-up"></i> 2 esta semana</small></div>
+          </article>
+          <article class="metric-card purple">
+            <div class="metric-icon"><i class="pi pi-list-check"></i></div>
+            <div><span>Tareas abiertas</span><strong>{{ openTasks }}</strong><small>1 de alta prioridad</small></div>
+          </article>
+          <article class="metric-card green">
+            <div class="metric-icon"><i class="pi pi-desktop"></i></div>
+            <div><span>Activos operativos</span><strong>{{ operationalAssets }}/{{ assets.length }}</strong><small>Inventario actualizado</small></div>
+          </article>
+          <article class="metric-card orange">
+            <div class="metric-icon"><i class="pi pi-tablet"></i></div>
+            <div><span>Tablets disponibles</span><strong>{{ availableTablets }}/{{ tablets.length }}</strong><small>Control mediante servidor Linux</small></div>
+          </article>
+        </section>
+
+        <section class="overview-grid">
+          <p-card styleClass="panel-card reservations-panel">
+            <ng-template pTemplate="header">
+              <div class="panel-header">
+                <div><span class="eyebrow">Agenda</span><h3>Próximas reservas</h3></div>
+                <button pButton type="button" label="Ver agenda" icon="pi pi-arrow-right" iconPos="right" class="p-button-text" (click)="selectView('reservations')"></button>
+              </div>
+            </ng-template>
+            <p-table [value]="reservations.slice(0, 4)" styleClass="p-datatable-sm" responsiveLayout="scroll">
+              <ng-template pTemplate="header">
+                <tr><th>Fecha</th><th>Curso y bloque</th><th>Laboratorio</th><th>Estado</th></tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-reservation>
+                <tr>
+                  <td><strong class="date-cell">{{ formatDate(reservation.date) }}</strong></td>
+                  <td><strong>{{ reservation.course }}</strong><small>{{ reservation.block }} · {{ reservation.teacher }}</small></td>
+                  <td>{{ reservation.lab }}</td>
+                  <td><p-tag [value]="reservation.status" [severity]="reservationSeverity(reservation.status)"></p-tag></td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </p-card>
+
+          <p-card styleClass="panel-card availability-panel">
+            <ng-template pTemplate="header">
+              <div class="panel-header"><div><span class="eyebrow">Capacidad</span><h3>Uso de laboratorios</h3></div></div>
+            </ng-template>
+            <div class="availability-list">
+              <div class="availability-item">
+                <div><span>Laboratorio Central</span><strong>78%</strong></div>
+                <p-progressBar [value]="78" [showValue]="false"></p-progressBar>
+                <small>7 de 9 bloques ocupados</small>
+              </div>
+              <div class="availability-item">
+                <div><span>Laboratorio Norte</span><strong>56%</strong></div>
+                <p-progressBar [value]="56" [showValue]="false"></p-progressBar>
+                <small>5 de 9 bloques ocupados</small>
+              </div>
+              <div class="availability-item">
+                <div><span>Aula móvil</span><strong>33%</strong></div>
+                <p-progressBar [value]="33" [showValue]="false"></p-progressBar>
+                <small>3 de 9 bloques ocupados</small>
+              </div>
+            </div>
+            <div class="service-banner"><i class="pi pi-wifi"></i><div><strong>Servicios estables</strong><span>Red, cuentas y dispositivos sin alertas críticas.</span></div></div>
+          </p-card>
+        </section>
+
+        <p-card styleClass="panel-card task-preview">
+          <ng-template pTemplate="header">
+            <div class="panel-header">
+              <div><span class="eyebrow">Soporte TI</span><h3>Tareas prioritarias</h3></div>
+              <button pButton type="button" label="Gestionar tareas" icon="pi pi-arrow-right" iconPos="right" class="p-button-text" (click)="selectView('tasks')"></button>
+            </div>
+          </ng-template>
+          <div class="task-preview-grid">
+            <article *ngFor="let task of tasks.slice(0, 3)" class="task-mini-card">
+              <div class="task-mini-top"><p-tag [value]="task.priority" [severity]="prioritySeverity(task.priority)"></p-tag><span>#{{ task.id }}</span></div>
+              <h4>{{ task.title }}</h4>
+              <p>{{ task.area }} · {{ task.owner }}</p>
+              <p-progressBar [value]="task.progress"></p-progressBar>
+            </article>
+          </div>
+        </p-card>
+      </ng-container>
+
+      <ng-container *ngIf="activeView === 'reservations'">
+        <section class="section-header">
+          <div><span class="eyebrow">Coordinación académica</span><h2>Agenda de reservas</h2><p>Administra los bloques de laboratorio y responde solicitudes pendientes.</p></div>
+          <button pButton type="button" label="Nueva reserva" icon="pi pi-plus" (click)="showReservationDialog()"></button>
+        </section>
+
+        <section class="calendar-layout">
+          <p-card styleClass="panel-card calendar-card">
+            <p-datepicker [(ngModel)]="newReservation.date" [inline]="true" [showWeek]="true"></p-datepicker>
+            <div class="calendar-legend"><span><i class="confirmed"></i> Confirmada</span><span><i class="pending"></i> Pendiente</span><span><i class="available"></i> Disponible</span></div>
+            <div class="week-summary"><div><strong>15</strong><span>reservas esta semana</span></div><div><strong>18</strong><span>bloques disponibles</span></div></div>
+          </p-card>
+
+          <p-card styleClass="panel-card table-card">
+            <ng-template pTemplate="header">
+              <div class="panel-header table-tools">
+                <div><span class="eyebrow">Solicitudes</span><h3>Reservas registradas</h3></div>
+                <p-select [options]="statusOptions" [(ngModel)]="reservationFilter" [style]="{ minWidth: '11rem' }"></p-select>
+              </div>
+            </ng-template>
+            <p-table [value]="filteredReservations" [paginator]="true" [rows]="5" responsiveLayout="scroll" styleClass="p-datatable-sm">
+              <ng-template pTemplate="header"><tr><th>ID</th><th>Fecha y bloque</th><th>Solicitante</th><th>Espacio</th><th>Estado</th><th class="actions-column">Acciones</th></tr></ng-template>
+              <ng-template pTemplate="body" let-reservation>
+                <tr>
+                  <td><span class="record-id">#{{ reservation.id }}</span></td>
+                  <td><strong>{{ formatDate(reservation.date) }}</strong><small>{{ reservation.block }}</small></td>
+                  <td><strong>{{ reservation.course }}</strong><small>{{ reservation.teacher }}</small></td>
+                  <td>{{ reservation.lab }}</td>
+                  <td><p-tag [value]="reservation.status" [severity]="reservationSeverity(reservation.status)"></p-tag></td>
+                  <td class="row-actions">
+                    <button *ngIf="reservation.status === 'Pendiente'" pButton type="button" icon="pi pi-check" class="p-button-rounded p-button-text p-button-success" pTooltip="Aprobar" (click)="approveReservation(reservation)"></button>
+                    <button *ngIf="reservation.status !== 'Cancelada'" pButton type="button" icon="pi pi-times" class="p-button-rounded p-button-text p-button-danger" pTooltip="Cancelar" (click)="cancelReservation(reservation)"></button>
+                    <button pButton type="button" icon="pi pi-eye" class="p-button-rounded p-button-text" pTooltip="Ver detalle"></button>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage"><tr><td colspan="6" class="empty-state">No hay reservas con este filtro.</td></tr></ng-template>
+            </p-table>
+          </p-card>
+        </section>
+      </ng-container>
+
+      <ng-container *ngIf="activeView === 'tasks'">
+        <section class="section-header">
+          <div><span class="eyebrow">Mesa de ayuda</span><h2>Tareas de soporte TI</h2><p>Organiza incidencias y actividades operativas por prioridad y avance.</p></div>
+          <button pButton type="button" label="Crear tarea" icon="pi pi-plus" (click)="showTaskDialog()"></button>
+        </section>
+
+        <section class="task-stats">
+          <p-card><div class="small-stat"><i class="pi pi-inbox"></i><div><strong>{{ openTasks }}</strong><span>Abiertas</span></div></div></p-card>
+          <p-card><div class="small-stat warning"><i class="pi pi-exclamation-circle"></i><div><strong>1</strong><span>Prioridad alta</span></div></div></p-card>
+          <p-card><div class="small-stat success"><i class="pi pi-check-circle"></i><div><strong>12</strong><span>Completadas este mes</span></div></div></p-card>
+        </section>
+
+        <p-card styleClass="panel-card table-card">
+          <p-table [value]="tasks" responsiveLayout="scroll">
+            <ng-template pTemplate="header"><tr><th>Tarea</th><th>Área</th><th>Responsable</th><th>Prioridad</th><th>Estado</th><th>Avance</th><th></th></tr></ng-template>
+            <ng-template pTemplate="body" let-task>
+              <tr>
+                <td><strong>{{ task.title }}</strong><small>#{{ task.id }}</small></td>
+                <td>{{ task.area }}</td>
+                <td><div class="owner-cell"><p-avatar [label]="task.owner === 'Pietro Alvarez' ? 'PA' : 'TI'" shape="circle"></p-avatar><span>{{ task.owner }}</span></div></td>
+                <td><p-tag [value]="task.priority" [severity]="prioritySeverity(task.priority)"></p-tag></td>
+                <td><p-tag [value]="task.status" [severity]="taskSeverity(task.status)"></p-tag></td>
+                <td class="progress-cell"><p-progressBar [value]="task.progress"></p-progressBar></td>
+                <td><button *ngIf="task.status !== 'Completada'" pButton type="button" [icon]="task.status === 'Pendiente' ? 'pi pi-play' : 'pi pi-check'" class="p-button-rounded p-button-text" pTooltip="Avanzar tarea" (click)="advanceTask(task)"></button></td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-card>
+      </ng-container>
+
+      <ng-container *ngIf="activeView === 'inventory'">
+        <section class="section-header">
+          <div><span class="eyebrow">Control de activos</span><h2>Inventario tecnológico</h2><p>Consulta la disponibilidad y condición del equipamiento institucional.</p></div>
+          <button pButton type="button" label="Registrar activo" icon="pi pi-plus" (click)="showAssetDialog()"></button>
+        </section>
+
+        <section class="inventory-summary">
+          <article><i class="pi pi-box"></i><div><strong>{{ assets.length }}</strong><span>Activos registrados</span></div></article>
+          <article><i class="pi pi-check-circle"></i><div><strong>{{ operationalAssets }}</strong><span>Operativos</span></div></article>
+          <article><i class="pi pi-wrench"></i><div><strong>{{ assetsInReview }}</strong><span>En revisión</span></div></article>
+          <article><i class="pi pi-ban"></i><div><strong>{{ assetsOutOfService }}</strong><span>Fuera de servicio</span></div></article>
+        </section>
+
+        <p-card styleClass="panel-card table-card">
+          <ng-template pTemplate="header">
+            <div class="panel-header table-tools">
+              <div><span class="eyebrow">Equipamiento</span><h3>Activos del laboratorio</h3></div>
+              <p-select [options]="inventoryOptions" [(ngModel)]="inventoryFilter" [style]="{ minWidth: '12rem' }"></p-select>
+            </div>
+          </ng-template>
+          <p-table [value]="filteredAssets" responsiveLayout="scroll" [paginator]="true" [rows]="5">
+            <ng-template pTemplate="header"><tr><th>Activo</th><th>Categoría</th><th>Ubicación</th><th>Estado</th><th>Última revisión</th><th></th></tr></ng-template>
+            <ng-template pTemplate="body" let-asset>
+              <tr>
+                <td><div class="asset-cell"><span class="asset-icon"><i [class]="assetIcon(asset.category)"></i></span><div><strong>{{ asset.name }}</strong><small>{{ asset.id }}</small></div></div></td>
+                <td>{{ asset.category }}</td>
+                <td>{{ asset.location }}</td>
+                <td><p-tag [value]="asset.status" [severity]="assetSeverity(asset.status)"></p-tag></td>
+                <td>{{ asset.updated }}</td>
+                <td><button pButton type="button" icon="pi pi-sync" class="p-button-rounded p-button-text" pTooltip="Cambiar estado" aria-label="Cambiar estado del activo" (click)="cycleAssetStatus(asset)"></button></td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-card>
+      </ng-container>
+
+      <ng-container *ngIf="activeView === 'network'">
+        <section class="section-header">
+          <div><span class="eyebrow">Monitoreo de sólo lectura</span><h2>Estado de la red UniFi</h2><p>Consulta sitios, equipos, clientes y disponibilidad sin modificar la configuración institucional.</p></div>
+          <button pButton type="button" label="Actualizar estado" icon="pi pi-refresh" (click)="loadNetworkOverview()" [loading]="networkLoading"></button>
+        </section>
+
+        <div *ngIf="networkLoading" class="backend-state-card">
+          <i class="pi pi-spin pi-spinner"></i>
+          <div><strong>Consultando el backend seguro</strong><span>La clave UniFi nunca se envía al navegador.</span></div>
+        </div>
+
+        <div *ngIf="networkError && !networkLoading" class="backend-state-card warning-state">
+          <i class="pi pi-server"></i>
+          <div><strong>Backend sin iniciar</strong><span>{{ networkError }}</span></div>
+        </div>
+
+        <ng-container *ngIf="networkOverview && !networkLoading">
+          <p-card styleClass="panel-card integration-banner">
+            <div class="integration-banner-content">
+              <div class="integration-icon"><i class="pi pi-shield"></i></div>
+              <div>
+                <span class="eyebrow">UniFi Site Manager</span>
+                <h3>{{ networkOverview.configured ? 'Conector seguro configurado' : 'Conector preparado' }}</h3>
+                <p>{{ networkOverview.message }}</p>
+              </div>
+              <div class="integration-tags">
+                <p-tag [value]="networkOverview.status" [severity]="networkStatusSeverity()"></p-tag>
+                <p-tag value="SOLO LECTURA" severity="info" icon="pi pi-eye"></p-tag>
+              </div>
+            </div>
+          </p-card>
+
+          <section class="network-summary">
+            <article><i class="pi pi-sitemap"></i><div><strong>{{ networkOverview.totalDevices }}</strong><span>Equipos UniFi</span></div></article>
+            <article [class.warning]="networkOverview.offlineDevices > 0"><i class="pi pi-exclamation-triangle"></i><div><strong>{{ networkOverview.offlineDevices }}</strong><span>Desconectados</span></div></article>
+            <article><i class="pi pi-wifi"></i><div><strong>{{ networkOverview.wifiClients }}</strong><span>Clientes Wi‑Fi</span></div></article>
+            <article><i class="pi pi-link"></i><div><strong>{{ networkOverview.wiredClients }}</strong><span>Clientes cableados</span></div></article>
+            <article><i class="pi pi-chart-line"></i><div><strong>{{ networkOverview.wanUptime | number:'1.0-1' }}%</strong><span>Disponibilidad WAN</span></div></article>
+            <article><i class="pi pi-download"></i><div><strong>{{ networkOverview.pendingUpdates }}</strong><span>Actualizaciones</span></div></article>
+          </section>
+
+          <section class="network-detail-grid">
+            <p-card styleClass="panel-card">
+              <ng-template pTemplate="header"><div class="panel-header"><div><span class="eyebrow">Acceso detectado</span><h3>Sitios y permisos</h3></div></div></ng-template>
+              <div class="detail-list">
+                <div><span>Sitios visibles</span><strong>{{ networkOverview.sites }}</strong></div>
+                <div><span>Nombres</span><strong>{{ networkOverview.siteNames.length ? networkOverview.siteNames.join(', ') : 'Pendiente de conexión' }}</strong></div>
+                <div><span>Permiso reportado</span><strong>{{ networkOverview.permissions.length ? networkOverview.permissions.join(', ') : 'Sin consultar' }}</strong></div>
+                <div><span>Última sincronización</span><strong>{{ formatSyncTime(networkOverview.lastSync) }}</strong></div>
+              </div>
+            </p-card>
+            <p-card styleClass="panel-card safe-operations-card">
+              <ng-template pTemplate="header"><div class="panel-header"><div><span class="eyebrow">Protección operacional</span><h3>Alcance de esta integración</h3></div></div></ng-template>
+              <ul>
+                <li><i class="pi pi-check-circle"></i> Consulta el resumen oficial de los sitios.</li>
+                <li><i class="pi pi-check-circle"></i> Lee estado, clientes y disponibilidad WAN.</li>
+                <li><i class="pi pi-lock"></i> No reinicia equipos ni modifica redes o usuarios.</li>
+                <li><i class="pi pi-lock"></i> La clave permanece exclusivamente en Linux.</li>
+              </ul>
+            </p-card>
+          </section>
+        </ng-container>
+      </ng-container>
+
+      <ng-container *ngIf="activeView === 'tablets'">
+        <section class="section-header">
+          <div><span class="eyebrow">Flota móvil</span><h2>Control de tablets</h2><p>Centraliza préstamos, mantenimiento y cumplimiento; Headwind MDM aplica las políticas Android.</p></div>
+          <div class="header-actions">
+            <button pButton type="button" label="Registrar tablet" icon="pi pi-plus" class="p-button-outlined" (click)="showTabletDialog()"></button>
+            <button pButton type="button" label="Nuevo préstamo" icon="pi pi-send" (click)="showTabletLoanDialog()" [disabled]="availableTablets === 0"></button>
+          </div>
+        </section>
+
+        <p-card styleClass="panel-card tablet-control-banner">
+          <div class="tablet-control-content">
+            <div class="integration-icon tablet-icon"><i class="pi pi-android"></i></div>
+            <div>
+              <span class="eyebrow">Control técnico de la flota</span>
+              <h3>{{ tabletBackendAvailable ? 'Backend de cumplimiento conectado' : 'Integración Headwind preparada' }}</h3>
+              <p *ngIf="tabletFleetSummary">{{ tabletFleetSummary.message }}</p>
+              <p *ngIf="!tabletFleetSummary">Inicia el backend para consultar aplicaciones, versiones aprobadas y alertas de cumplimiento.</p>
+            </div>
+            <div class="integration-tags">
+              <p-tag [value]="tabletFleetSummary?.enforcementMode === 'REPORT_ONLY' ? 'EVALUACIÓN' : 'SIN CONEXIÓN'" severity="info"></p-tag>
+            </div>
+          </div>
+          <div *ngIf="tabletFleetSummary" class="tablet-compliance-strip">
+            <div><strong>{{ tabletFleetSummary.installedApps }}</strong><span>Apps inventariadas</span></div>
+            <div><strong>{{ tabletFleetSummary.compliantDevices }}</strong><span>Tablets conformes</span></div>
+            <div class="attention"><strong>{{ tabletFleetSummary.unapprovedApps }}</strong><span>Apps no autorizadas</span></div>
+            <div class="attention"><strong>{{ tabletFleetSummary.outdatedApps }}</strong><span>Apps desactualizadas</span></div>
+          </div>
+        </p-card>
+
+        <section class="inventory-summary">
+          <article><i class="pi pi-tablet"></i><div><strong>{{ tablets.length }}</strong><span>Tablets registradas</span></div></article>
+          <article><i class="pi pi-check-circle"></i><div><strong>{{ availableTablets }}</strong><span>Disponibles</span></div></article>
+          <article><i class="pi pi-user"></i><div><strong>{{ loanedTablets }}</strong><span>Prestadas</span></div></article>
+          <article><i class="pi pi-wrench"></i><div><strong>{{ tabletsInMaintenance }}</strong><span>En revisión</span></div></article>
+        </section>
+
+        <p-card styleClass="panel-card table-card tablet-table-card">
+          <ng-template pTemplate="header">
+            <div class="panel-header table-tools">
+              <div><span class="eyebrow">Inventario especializado</span><h3>Dispositivos administrados</h3></div>
+              <p-select [options]="tabletStatusOptions" [(ngModel)]="tabletFilter" [style]="{ minWidth: '12rem' }"></p-select>
+            </div>
+          </ng-template>
+          <p-table [value]="filteredTablets" responsiveLayout="scroll" [paginator]="true" [rows]="6">
+            <ng-template pTemplate="header"><tr><th>Tablet</th><th>Serie / MAC</th><th>Sistema</th><th>Estado</th><th>Ubicación</th><th>Última actividad</th><th>Acciones</th></tr></ng-template>
+            <ng-template pTemplate="body" let-tablet>
+              <tr>
+                <td><div class="asset-cell"><span class="asset-icon"><i class="pi pi-tablet"></i></span><div><strong>{{ tablet.id }}</strong><small>{{ tablet.model }}</small></div></div></td>
+                <td><strong>{{ tablet.serial }}</strong><small>{{ tablet.mac }}</small></td>
+                <td><strong>Android {{ tablet.androidVersion }}</strong><small>{{ tablet.managementProvider }}</small></td>
+                <td><p-tag [value]="tablet.status" [severity]="tabletSeverity(tablet.status)"></p-tag><small *ngIf="tablet.assignee">{{ tablet.assignee }}</small></td>
+                <td>{{ tablet.location }}</td>
+                <td>{{ tablet.lastSeen }}</td>
+                <td class="row-actions">
+                  <button *ngIf="tablet.status === 'Prestada'" pButton type="button" icon="pi pi-undo" class="p-button-rounded p-button-text p-button-success" pTooltip="Registrar devolución" (click)="returnTablet(tablet)"></button>
+                  <button *ngIf="tablet.status === 'Disponible'" pButton type="button" icon="pi pi-wrench" class="p-button-rounded p-button-text p-button-warning" pTooltip="Enviar a mantenimiento" (click)="sendTabletToMaintenance(tablet)"></button>
+                  <button *ngIf="tablet.status === 'En revisión'" pButton type="button" icon="pi pi-check" class="p-button-rounded p-button-text p-button-success" pTooltip="Finalizar revisión" (click)="returnTablet(tablet)"></button>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-card>
+
+        <p-card styleClass="panel-card table-card loan-history-card">
+          <ng-template pTemplate="header"><div class="panel-header"><div><span class="eyebrow">Trazabilidad</span><h3>Préstamos recientes</h3></div><p-tag value="Preparado para QR" severity="info" icon="pi pi-qrcode"></p-tag></div></ng-template>
+          <p-table [value]="tabletLoans" responsiveLayout="scroll" [rows]="5">
+            <ng-template pTemplate="header"><tr><th>Registro</th><th>Tablet</th><th>Responsable</th><th>Curso</th><th>Fecha y bloque</th><th>Estado</th></tr></ng-template>
+            <ng-template pTemplate="body" let-loan><tr><td>#{{ loan.id }}</td><td><strong>{{ loan.tabletId }}</strong></td><td>{{ loan.borrower }}</td><td>{{ loan.course }}</td><td>{{ formatDate(loan.date) }}<small>{{ loan.block }}</small></td><td><p-tag [value]="loan.status" [severity]="loan.status === 'Activo' ? 'info' : 'success'"></p-tag></td></tr></ng-template>
+            <ng-template pTemplate="emptymessage"><tr><td colspan="6" class="empty-state">Aún no hay préstamos registrados.</td></tr></ng-template>
+          </p-table>
+        </p-card>
+      </ng-container>
+    </div>
+  </main>
+</div>
+
+<p-dialog [(visible)]="reservationDialog" [modal]="true" [draggable]="false" [style]="{ width: '42rem' }" [breakpoints]="{ '700px': '94vw' }" header="Nueva solicitud de reserva">
+  <div class="dialog-intro"><span class="dialog-icon"><i class="pi pi-calendar-plus"></i></span><div><strong>Reserva un espacio tecnológico</strong><p>La solicitud quedará pendiente hasta ser aprobada por soporte TI.</p></div></div>
+  <div class="form-grid">
+    <label><span>Fecha</span><p-datepicker [(ngModel)]="newReservation.date" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body"></p-datepicker></label>
+    <label><span>Bloque</span><p-select [options]="blocks" [(ngModel)]="newReservation.block" placeholder="Selecciona un bloque" appendTo="body"></p-select></label>
+    <label><span>Curso</span><p-select [options]="courses" [(ngModel)]="newReservation.course" placeholder="Selecciona un curso" appendTo="body"></p-select></label>
+    <label><span>Docente</span><input pInputText [(ngModel)]="newReservation.teacher" placeholder="Nombre del docente"></label>
+    <label class="full-field"><span>Espacio</span><p-select [options]="labs" [(ngModel)]="newReservation.lab" placeholder="Selecciona un laboratorio" appendTo="body"></p-select></label>
+    <label class="full-field"><span>Observaciones</span><textarea pTextarea [(ngModel)]="newReservation.notes" rows="3" placeholder="Actividad, software requerido u otra información"></textarea></label>
+  </div>
+  <ng-template pTemplate="footer"><button pButton type="button" label="Cancelar" class="p-button-text" (click)="reservationDialog = false"></button><button pButton type="button" label="Guardar solicitud" icon="pi pi-check" (click)="saveReservation()"></button></ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="assetDialog" [modal]="true" [draggable]="false" [style]="{ width: '40rem' }" [breakpoints]="{ '700px': '94vw' }" header="Registrar activo">
+  <div class="dialog-intro"><span class="dialog-icon"><i class="pi pi-box"></i></span><div><strong>Nuevo equipo institucional</strong><p>El activo quedará incluido en el inventario persistente del Centro TI.</p></div></div>
+  <div class="form-grid">
+    <label><span>Código interno</span><input pInputText [(ngModel)]="newAsset.id" placeholder="PC-015"></label>
+    <label><span>Nombre o modelo</span><input pInputText [(ngModel)]="newAsset.name" placeholder="Dell OptiPlex 7090"></label>
+    <label><span>Categoría</span><p-select [options]="assetCategories" [(ngModel)]="newAsset.category" appendTo="body"></p-select></label>
+    <label><span>Estado inicial</span><p-select [options]="inventoryOptions.slice(1)" [(ngModel)]="newAsset.status" appendTo="body"></p-select></label>
+    <label class="full-field"><span>Ubicación</span><input pInputText [(ngModel)]="newAsset.location" placeholder="Laboratorio central · Puesto 15"></label>
+  </div>
+  <ng-template pTemplate="footer"><button pButton type="button" label="Cancelar" class="p-button-text" (click)="assetDialog = false"></button><button pButton type="button" label="Registrar activo" icon="pi pi-plus" (click)="saveAsset()"></button></ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="tabletDialog" [modal]="true" [draggable]="false" [style]="{ width: '42rem' }" [breakpoints]="{ '700px': '94vw' }" header="Registrar tablet">
+  <div class="dialog-intro"><span class="dialog-icon"><i class="pi pi-tablet"></i></span><div><strong>Nuevo activo móvil</strong><p>Quedará preparado para sincronizarse con UniFi y, en el futuro, Microsoft Intune.</p></div></div>
+  <div class="form-grid">
+    <label><span>Código interno</span><input pInputText [(ngModel)]="newTablet.id" placeholder="TAB-005"></label>
+    <label><span>Número de serie</span><input pInputText [(ngModel)]="newTablet.serial" placeholder="Serie del fabricante"></label>
+    <label class="full-field"><span>Modelo</span><input pInputText [(ngModel)]="newTablet.model"></label>
+    <label><span>Dirección MAC</span><input pInputText [(ngModel)]="newTablet.mac" placeholder="00:00:00:00:00:00"></label>
+    <label><span>Versión de Android</span><input pInputText [(ngModel)]="newTablet.androidVersion"></label>
+    <label class="full-field"><span>Ubicación</span><input pInputText [(ngModel)]="newTablet.location"></label>
+  </div>
+  <ng-template pTemplate="footer"><button pButton type="button" label="Cancelar" class="p-button-text" (click)="tabletDialog = false"></button><button pButton type="button" label="Registrar tablet" icon="pi pi-check" (click)="saveTablet()"></button></ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="tabletLoanDialog" [modal]="true" [draggable]="false" [style]="{ width: '42rem' }" [breakpoints]="{ '700px': '94vw' }" header="Nuevo préstamo de tablet">
+  <div class="dialog-intro"><span class="dialog-icon"><i class="pi pi-send"></i></span><div><strong>Asignación con trazabilidad</strong><p>La tablet quedará asociada al responsable hasta registrar su devolución.</p></div></div>
+  <div class="form-grid">
+    <label class="full-field"><span>Tablet disponible</span><p-select [options]="availableTabletOptions" optionLabel="label" optionValue="value" [(ngModel)]="newTabletLoan.tabletId" placeholder="Selecciona una tablet" appendTo="body"></p-select></label>
+    <label><span>Responsable</span><input pInputText [(ngModel)]="newTabletLoan.borrower" placeholder="Nombre del docente"></label>
+    <label><span>Curso</span><p-select [options]="courses" [(ngModel)]="newTabletLoan.course" placeholder="Selecciona un curso" appendTo="body"></p-select></label>
+    <label><span>Fecha</span><p-datepicker [(ngModel)]="newTabletLoan.date" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body"></p-datepicker></label>
+    <label><span>Bloque</span><p-select [options]="blocks" [(ngModel)]="newTabletLoan.block" placeholder="Selecciona un bloque" appendTo="body"></p-select></label>
+  </div>
+  <ng-template pTemplate="footer"><button pButton type="button" label="Cancelar" class="p-button-text" (click)="tabletLoanDialog = false"></button><button pButton type="button" label="Registrar préstamo" icon="pi pi-check" (click)="saveTabletLoan()"></button></ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="taskDialog" [modal]="true" [draggable]="false" [style]="{ width: '38rem' }" [breakpoints]="{ '700px': '94vw' }" header="Crear tarea de soporte">
+  <div class="form-grid">
+    <label class="full-field"><span>Título de la tarea</span><input pInputText [(ngModel)]="newTask.title" placeholder="Describe el trabajo a realizar"></label>
+    <label><span>Área</span><p-select [options]="taskAreas" [(ngModel)]="newTask.area" placeholder="Selecciona un área" appendTo="body"></p-select></label>
+    <label><span>Prioridad</span><p-select [options]="priorities" [(ngModel)]="newTask.priority" appendTo="body"></p-select></label>
+    <label class="full-field"><span>Detalle</span><textarea pTextarea [(ngModel)]="newTask.notes" rows="4" placeholder="Agrega contexto o pasos sugeridos"></textarea></label>
+  </div>
+  <ng-template pTemplate="footer"><button pButton type="button" label="Cancelar" class="p-button-text" (click)="taskDialog = false"></button><button pButton type="button" label="Crear tarea" icon="pi pi-plus" (click)="saveTask()"></button></ng-template>
+</p-dialog>

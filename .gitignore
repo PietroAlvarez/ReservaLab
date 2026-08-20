@@ -1,10 +1,10 @@
 node_modules/
 dist/
+.angular/
 .env
-.env.*
-!.env.example
-*.tsbuildinfo
-.vercel/
-.DS_Store
-Thumbs.db
-datos DB.txt
+backend/.env
+backend/target/
+backend/data/
+*.log
+.idea/
+.vscode/

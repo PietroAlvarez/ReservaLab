@@ -15,7 +15,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  probar-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@v5
+
+      - name: Preparar Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Probar API
+        working-directory: backend
+        run: mvn --batch-mode test
+
   build-and-deploy:
+    needs: probar-backend
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -29,15 +47,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: soporte-suite/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Instalar dependencias
-        working-directory: soporte-suite
-        run: npm install
+        run: npm ci
 
       - name: Compilar aplicación
-        working-directory: soporte-suite
-        run: npm run build
+        run: npm run build:prod -- --base-href /ReservaLab/
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
@@ -45,7 +61,7 @@ jobs:
       - name: Preparar artefacto
         uses: actions/upload-pages-artifact@v3
         with:
-          path: soporte-suite/dist
+          path: dist/centro-ti
 
       - name: Publicar
         id: deployment
